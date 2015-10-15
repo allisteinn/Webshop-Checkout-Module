@@ -1,0 +1,14 @@
+<div>
+	<h1>Sérstillt sölusíða með valfrjálsu innskráningarkerfi</h1>
+	<p>
+		<span>Sé notandi ekki innskráður eiga upplýsingar um hann að skila sér til sölusíðunnar. <br /></span>
+		<span>Sé notandi nú þegar skráður inn skal sleppa skrefi#1 (Póstbox innskráning) og skrefi#2 (notendauppl.) og fara beint í skref#3 (velja afhendingarmáta)</span>
+	</p>
+	<p>
+		<a class="btn btn-primary" role="button" ng-click="specialWebpage.startCheckout()">Byrja checkout</a>
+	</p>
+	<div ng-show="lastResult">
+		<h3>Niðurstöður frá plugin</h3>
+		<p>{{lastResult}}</p>
+	</div>
+</div>

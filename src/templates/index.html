@@ -1,5 +1,5 @@
 	<!DOCTYPE html>
-	<html lang="en" ng-controller="mainCtrl">
+	<html lang="en">
 		<head>
 			<meta charset="utf-8">
 			<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,9 +9,18 @@
 			<title>Website</title>
 			
 			<link href="css/style.css" rel="stylesheet">
+
+			<!-- Plugin CSS -->
+			<link rel="stylesheet" href="pwebcheckout-plugin/lib/jquery-ui-1.11.4.custom/jquery-ui.min.css">
+			<link rel="stylesheet" href="pwebcheckout-plugin/css/pwebcheckout-plugin.css">
+			<!-- Plugin JS -->
+			<script src="pwebcheckout-plugin/lib/jquery-2.1.4.min.js"></script>
+			<script src="pwebcheckout-plugin/lib/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
+			<script src="pwebcheckout-plugin/javascript/jquery.pwebcheckout-plugin.js"></script>
+
 		</head>
 	
-		<body ng-app="app" ng-cloak>
+		<body ng-app="app" ng-cloak ng-controller="mainCtrl">
 	
 			<nav class="navbar navbar-default navbar-fixed-top">
 				<div class="container-fluid">
@@ -27,23 +36,40 @@
 					<div id="navbar" class="navbar-collapse" collapse="!isCollapsed">
 						<ul class="nav navbar-nav">
 								<li class="dropdown" dropdown on-toggle="toggled(open)">
-								<a dropdown-toggle role="button" aria-haspopup="true" aria-expanded="false">Dropdown&nbsp;<span class="caret"></span></a>
+								<a dropdown-toggle role="button" aria-haspopup="true" aria-expanded="false">Velja sölusíðu&nbsp;<span class="caret"></span></a>
 								<ul class="dropdown-menu">
-									<li><a>link 1</a></li>
-									<li><a>link 2</a></li>
-									<li><a>link 3</a></li>
+									<li><a ui-sref="simple">Einföld sölusíða</a></li>
+									<li><a ui-sref="complex">Flóknari sölusíða</a></li>
+									<li><a ui-sref="special">Sérsniðin sölusíða</a></li>
 								</ul>
 								</li>
-								<li><a>Link</a></li>
-								<li><a>Link</a></li>
+								<li>
+									<a ui-sref="karfa" ng-show="basket.amount > 0">Karfan inniheldur {{basket.amount}} hluti, sem vega {{basket.weight}} kg og taka {{basket.space}} rúmmetra</a>
+									<a ui-sref="karfa" ng-show="basket.amount < 1">Karfan er tóm</a>
+								</li>
 							</ul>
 						<ul class="nav navbar-nav navbar-right">
 							<li class="dropdown" dropdown on-toggle="toggled(open)">
-							<a dropdown-toggle data-target="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user"></i>&nbsp;User&nbsp;<span class="caret"></span></a>
-							<ul class="dropdown-menu">
-								<li><a>Settings</a></li>
+							<a dropdown-toggle data-target="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+								<i class="fa fa-user"></i>
+								&nbsp;
+								<span ng-show="loggedIn">{{user.name}}</span>
+								<span ng-show="!loggedIn">Innskráning</span>
+								&nbsp;
+								<span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu" ng-show="!loggedIn">
+								<li>
+									<a ng-click="login()">Skrá mig inn sem {{preMadeUser.name}}</a>
+								</li>
+							</ul>
+							<ul class="dropdown-menu" ng-show="loggedIn">
+								<li style="float:right;">{{user.name}}&nbsp;</li>
+								<li style="float:right;">{{user.address}}, {{user.postcode}}&nbsp;</li>
+								<li style="float:right;">Kt: {{user.nin}}&nbsp;</li>
+								<li style="float:right;">Sími: {{user.mobilePhoneNumber}}&nbsp;</li>
 								<li role="separator" class="divider"></li>
-								<li><a>Logout</a></li>
+								<li><a ng-click="logout()">Skrá mig út</a></li>
 							</ul>
 							</li>
 						</ul>
@@ -52,6 +78,7 @@
 			</nav>
 	
 			<div class="container-fluid" data-ui-view></div>
+			<div id="pwebcheckout-area"></div>
 			
 			<script src="js/scripts.js"></script>
 	

@@ -1,0 +1,9 @@
+<div>
+	<h1>Kaupa hluti</h1>
+	<p>
+		<span ng-show="basket.amount > 0">Í körfunni þinni eru {{basket.amount}} hlutir, þyngd: {{basket.weight}}, rúmmál {{basket.space}}</span>
+		<span ng-show="basket.amount < 1">Karfan er tóm</span>
+	</p>
+	<a class="btn btn-primary" ng-click="addToBasket(purchasableItem);">Setja nýjan hlut í körfuna</a>
+	<a class="btn btn-primary" ng-click="emptyBasket();">Tæma körfuna</a>
+</div>

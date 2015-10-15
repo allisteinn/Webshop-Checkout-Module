@@ -69,6 +69,11 @@ gulp.task('js', function() {
 	.pipe(connect.reload());
 });
 
+gulp.task('pwebcheckout-plugin', function() {
+	return gulp.src('src/pwebcheckout-plugin/**/*')
+	.pipe(gulp.dest(outputDir + '/pwebcheckout-plugin'));
+});
+
 gulp.task('connect', function() {
 	connect.server({
 		root: outputDir,
@@ -88,4 +93,4 @@ gulp.task('open', ['html', 'connect', 'watch'], function() {
 	.pipe(open({uri: 'http://localhost:1234'}));
 });
 
-gulp.task('default', ['icons', 'css', 'js', 'html', 'connect', 'watch', 'open']);
+gulp.task('default', ['icons', 'css', 'pwebcheckout-plugin', 'js', 'html', 'connect', 'watch', 'open']);

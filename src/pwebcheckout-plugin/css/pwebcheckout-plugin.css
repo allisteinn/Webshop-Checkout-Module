@@ -1,0 +1,278 @@
+.webcheckout {
+}
+
+/* Header */
+
+.webcheckout > .ui-widget-header {
+}
+
+.webcheckout > .ui-widget-header > .ui-dialog-title {
+}
+
+.webcheckout > .ui-dialog-titlebar {
+}
+
+.webcheckout > .ui-dialog-titlebar > .ui-dialog-titlebar-close {
+	display: none;
+}
+
+/* Body */
+
+.webcheckout .centered {
+	position: fixed;
+	top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.webcheckout .centered.loading {
+	display: none;
+}
+.webcheckout .centered.loading > span {
+}
+.webcheckout .centered.loading > img {
+	transform: translate(0, -60px);
+}
+
+.webcheckout button > span {
+	color: red;
+}
+.webcheckout button:disabled > span {
+	color: #dddddd;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service {
+	display: none;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container {
+	/*border-radius: 4px;
+	border-style: solid;
+	border-width: 1px;*/
+	outline: 2px solid black;
+	display: inline-block;
+	min-height: 400px;
+	min-width: 50px;
+	vertical-align: text-top;
+	width: 30%;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container.empty {
+	outline: none;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container.left {
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container.center {
+	margin-left: 5%;
+	margin-right: 5%;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container.right {
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container > .title {
+	font-size: 1em;
+	font-weight: bold;
+	min-height: 45px;
+	padding-left: 10%;
+	padding-right: 10%;
+	text-align: center;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container .title > span {
+	display: inline-block;
+	line-height: 45px;
+	vertical-align: middle;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container > .horizontal-line {
+	border-bottom: 1px solid red;
+	margin-left: 5%;
+	margin-right: 5%;
+	width: 90%;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content {
+	display: block;
+	min-height: 310px;
+	padding: 10px;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row {
+	display:block;
+	margin-bottom: 10px;
+	width: 100%;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput {
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput.get {
+	display: none;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > label {
+	display: inline-block;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > input.postbox {
+	display: inline-block;
+	margin-left: 5px;
+	width: 80px;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > select {
+	display: inline-block;
+	margin-left: 5px;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > select.postcode {
+	margin-left: 0px;
+	margin-top: 5px;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > select.posthouse {
+	display: block;
+	margin-left: 0px;
+	width: 200px;
+}
+
+/*.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading {
+	display: inline-block;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading > span {
+	display: inline-block;
+	margin-left: 10px;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading > img {
+	display: inline-block;
+	margin-left: 10px;
+}*/
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading {
+	display: block;
+	width: 100%;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading > img {
+	margin-left: 0px;
+	position: relative;
+	left: 50%;
+	/* img width = 16px */
+	transform: translate(-8px, 0);
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .container > .footer {
+	height: 45px;
+	text-align: center;
+	vertical-align: text-bottom;
+}
+
+.webcheckout > .ui-dialog-content > .userinfo {
+	display: none;
+}
+
+.webcheckout > .ui-dialog-content > .userinfo > .row {
+	/*height: 37px;*/
+	padding-bottom: 10px;
+}
+
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput {
+}
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > label {
+	display: inline-block;
+	text-align: right;
+  width: 20%;
+}
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > input {
+	display: inline-block;
+	margin-left: 5px;
+	width: 300px;
+}
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > input.nin {
+	width: 100px;
+}
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > input.phone-number {
+	width: 70px;
+}
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > input.address {
+}
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > select.postcode {
+	margin-left: 5px;
+	width: 200px;
+}
+/*.webcheckout > .ui-dialog-content > .userinfo > .row > .ui-selectmenu-button {
+	border: none;
+	display: inline-block;
+	margin-left: 5px;
+}
+.webcheckout > .ui-dialog-content > .userinfo > .row > .ui-selectmenu-button > .ui-selectmenu-text {
+	color: black;
+	display: inline-block;
+	line-height: 0px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+}*/
+
+.webcheckout > .ui-dialog-content > .userinfo > .row > button {
+	margin-left: 5px;
+}
+
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > .loading {
+	display: inline-block;
+}
+
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > .loading > img {
+	display: inline-block;
+	margin-left: 10px;
+}
+
+.webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > .loading > span {
+	display: inline-block;
+	margin-left: 10px;
+}
+
+.webcheckout > .ui-dialog-content > .login {
+}
+.webcheckout > .ui-dialog-content > .login > .row {
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput {
+	display: none;
+	width: 220px;
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput > label {
+	display: inline-block;
+	float: left;
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput > input {
+	display: inline-block;
+	float: right;
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput > button {
+	margin-top: 10px;
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput > button.left {
+	float: left;
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput > button.right {
+	float: right;
+}
+
+/* 90px + 70px = 160px */
+.webcheckout > .ui-dialog-content > .login > .row > .userinput.phone-number > label {
+	margin-left: 30px;
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput.phone-number > input {
+	margin-right: 30px;
+	width: 70px;
+}
+
+/* 80px + 40px = 120px*/
+.webcheckout > .ui-dialog-content > .login > .row > .userinput.code > label {
+	margin-left: 50px;
+}
+.webcheckout > .ui-dialog-content > .login > .row > .userinput.code > input {
+	margin-right: 50px;
+	width: 40px;
+}
+
+.webcheckout > .ui-dialog-content > .login > .loading {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, 50px);
+}
+.webcheckout > .ui-dialog-content > .login > .loading > span {
+	margin-left: 10px;
+}
