@@ -57,73 +57,52 @@ module.exports = function() {
     $scope.lastResult;
 
     // $.fn.startWebcheckout = function(storeProductInput, storeUserInput, displayMode, allowedDeliveryMethods)
-    $scope.callCheckout = function(storeUserInput, displayMode, allowedDeliveryMethods) {
+    $scope.callCheckout = function(sendUser, displayMode, allowedDeliveryMethods) {
+    	var theUser = sendUser? $scope.user: undefined;
     	var deferred = $q.defer();
-			return angular.element('pwebcheckout-area').startWebcheckout(storeUserInput, displayMode, allowedDeliveryMethods).then(
-    		function(response) {
-    			deferred.resolve(response);
-    		},
-    		function(error) {
-    			deferred.reject(error);
-    		}
-    	);
-    	return deferred.promise;
-    };
 
-    $scope.callCheckout = function(displayMode, allowedDeliveryMethods) {
-    	var deferred = $q.defer();
-    	return angular.element('pwebcheckout-area').startWebcheckout($scope.basket, $scope.user, displayMode, allowedDeliveryMethods).then(
-    		function(response) {
-    			deferred.resolve(response);
-    		},
-    		function(error) {
-    			deferred.reject(error);
-    		}
-    	);
-    	return deferred.promise;
-    };
-
-    $scope.callCheckout = function() {
-    	var deferred = $q.defer();
-    	angular.element('pwebcheckout-area').startWebcheckout($scope.basket, $scope.user).then(
-    		function(response) {
-    			deferred.resolve(response);
-    		},
-    		function(error) {
-    			deferred.reject(error);
-    		}
-    	);
-    	return deferred.promise;
+			angular.element('pwebcheckout-area').startWebcheckout($scope.basket, theUser, displayMode, allowedDeliveryMethods).then(
+				function(response) {
+					deferred.resolve(response);
+				},
+				function(error) {
+					deferred.resolve(error);
+				}
+			);
+			return deferred.promise;
     };
 
     $scope.simpleWebpage = {
     	posthouseOnly: function() {
-    		$scope.callCheckout(undefined, ['posthouse']);
+    		$scope.callCheckout(false, ['posthouse'], undefined);
     	},
     	anywhere: function() {
-    		$scope.callCheckout($scope.emptyUser, undefined, undefined);
+    		$scope.callCheckout(false, undefined, undefined);
     	}
     };
     $scope.complexWebpage = {
     	startCheckout: function() {
-    		$scope.lastResult = JSON.stringify($scope.callCheckout(),null,"    ");
+    		$scope.callCheckout($scope.loggedIn, undefined, undefined).then(
+    			function(response) {
+    				$scope.lastResult = JSON.stringify(response, null, "    ");
+    			},
+    			function(error) {
+    				$scope.lastResult = 'Villa kom upp';
+    			}
+    		);
     	}
     };
     $scope.specialWebpage = {
     	startCheckout: function() {
-    		if ($scope.loggedIn) {
-    			$scope.callCheckout('skipuserinfo');
-    		}
-    		else {
-    			$scope.callCheckout().then(
-    				function(response) {
-    					$scope.lastResult = JSON.stringify(response, null, "    ");
-    				},
-    				function(error) {
-    					$scope.lastResult = 'Villa kom upp';
-    				}
-    			);	
-    		}
+    		var displayMode = $scope.loggedIn? ['skiplogin', 'skipuserinfo']: undefined;
+				$scope.callCheckout($scope.loggedIn, displayMode, undefined).then(
+					function(response) {
+						$scope.lastResult = JSON.stringify(response, null, "    ");
+					},
+					function(error) {
+						$scope.lastResult = 'Villa kom upp';
+					}
+				);
     	}
     };
   });

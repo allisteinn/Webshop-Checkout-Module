@@ -125,21 +125,22 @@
 			}
 
 			// Find and add our initial view if we haven't done so previously
-			if (displayMode == undefined || displayMode == 'skipdeliverymethod') {
-				if (displayMode == 'skiplogin') {
-					initUserInfoView();
+			if (displayMode  && displayMode.indexOf('skiplogin') > -1) {
+				if (displayMode.indexOf('skipuserinfo') > -1) {
+					initChooseServiceView();
 				}
 				else {
-					initLoginView();
+					initUserInfoView();
 				}
 			}
 			else {
-				initChooseServiceView();
-			}	
+				console.info(displayMode);
+				initLoginView();
+			}
 		};
 
 		initLoginView = function(outputMessage) {
-			var html = '<div class="login"><p class="instructions">Ef þú ert skráður í Póstbox...</p><div class="row centered"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1"><br /><button id="pwebcheckout-login-skipBtn" title="Skrá upplýsingar handvirkt" tabindex="2" class="left"></button><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3" class="right"></button></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1"><br /><button id="pwebcheckout-login-skipBtn" title="Skrá upplýsingar handvirkt" tabindex="2" class="left"></button><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3" class="right"></button></div><div class="output"></div></div></div>';
+			var html = '<div class="login"><p class="instructions">Þessa innskráningarleið er aðeins hægt að nota ef þú ert nú þegar skráð(ur) í Póstbox. Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna. Þú getur skráð þig á mappan.is eða notað rafræn skilríki til þess að skrá þig í þjónustuna. Rafræn skilríki eru auðveld leið til auðkenningar og undirritunar. Þau getur þú fengið í símann þinn eða í debetkortið. Á postur.is eru einföld myndbönd sem útskýra hvernig ferlið gengur fyrir sig.</p><div class="row centered"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits><br /><button id="pwebcheckout-login-skipBtn" title="Skrá upplýsingar handvirkt" tabindex="2" class="left"></button><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3" class="right"></button></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /><button id="pwebcheckout-login-skipBtn" title="Skrá upplýsingar handvirkt" tabindex="2" class="left"></button><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3" class="right"></button></div><div class="output"></div></div></div>';
 			loadHtml(html, 1);
 
 			var loginState = 0;
@@ -159,34 +160,61 @@
 			});
 
 			$('#pwebcheckout-login-nameBtn').click(function() {
-				setLoginLoading(true, 1);
-				requestLogin($('#pwebcheckout-login-name').val())
-				.done(function() {
-					setLoginLoading(false, 1);
-					$('.userinput.phone-number').remove();
-					$('.userinput.code').toggle('fade');
-					$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
-					$('#pwebcheckout-login-codeBtn').button({label: 'Áfram'});
+				var name = $('#pwebcheckout-login-name').val();
+				
+				if (validate.isNumber(name, 7)) {
+					setLoginLoading(true, 1);
+					requestLogin(name)
+					.done(function() {
+						setLoginLoading(false, 1);
+						$('.userinput.phone-number').remove();
+						$('.userinput.code').toggle('fade');
+						$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
+						$('#pwebcheckout-login-codeBtn').button({label: 'Áfram'});
 
-					$('#pwebcheckout-login-skipBtn').click(function() {
-						initUserInfoView();
-					});
+						$('#pwebcheckout-login-code').focus();
 
-					$('#pwebcheckout-login-codeBtn').click(function() {
-						setLoginLoading(true, 2);
-						confirmLogin($('#pwebcheckout-login-code').val())
-						.done(function() {
-							$('.login').remove();
+						$('#pwebcheckout-login-skipBtn').click(function() {
 							initUserInfoView();
-						})
-						.fail(function(error) {
-							initLoginView(error);
 						});
+
+						$('#pwebcheckout-login-codeBtn').click(function() {
+							var code = $('#pwebcheckout-login-code').val();
+							
+							if (validate.isNumber(code, 4)) {
+								setLoginLoading(true, 2);
+								confirmLogin(code)
+								.done(function(response) {
+									$('.login').remove();
+									$.extend(user, response.user);
+									if (displayMode && displayMode.indexOf('skipuserinfo') > -1)
+										initChooseServiceView();
+									else
+										initUserInfoView();
+								})
+								.fail(function(error) {
+									initLoginView(error);
+								});
+							}
+							else {
+								setLoginLoading(true, 0, 'Villa! Ógildur kóði');
+								setTimeout(function() {
+									setLoginLoading(false, 0, 'Villa! Ógildur kóði');
+								}, 1000);
+							}
+							
+						});
+					})
+					.fail(function(error) {
+						setLoginLoading(false, 2, error);
 					});
-				})
-				.fail(function(error) {
-					setLoginLoading(false, 2, error);
-				});
+				}
+				else {
+					setLoginLoading(true, 0, 'Villa! Ógilt símanúmer');
+					setTimeout(function() {
+						setLoginLoading(false, 0, 'Villa! Ógilt símanúmer');
+					}, 1000);
+				}
 			});
 		};
 
@@ -228,7 +256,7 @@
 				user.postcodeFull = $('#pwebcheckout-postcode option:selected').text();
 				console.info(user);
 
-				if (displayMode == 'skipdeliverymethod') {
+				if (displayMode && displayMode.indexOf('skipdeliverymethod') > -1) {
 					$('#pwebcheckout-area').dialog('close');
 				}
 				else {
@@ -498,6 +526,19 @@
 				setLoading(start, displayText, 'input', element, 'login');
 		};
 
+		validate = {
+			notEmpty: function(input) {
+				return input != undefined && input.length > 0;
+			},
+			exactLength: function(input, length) {
+				return input.length == length;
+			},
+			isNumber: function(input, length) {
+				return validate.notEmpty(input) && !isNaN(parseInt(input)) && 
+					(length == undefined? true: validate.exactLength(input, length));
+			}
+		};
+
 		requestLogin = function(phoneNumber) {
 			var dfd = $.Deferred();
 			setTimeout(function() {
@@ -509,16 +550,19 @@
 		confirmLogin = function(code) {
 			var dfd = $.Deferred();
 			setTimeout(function() {
-				var rUser = {
-					nin: '9876543210',
-					name: 'Pétur Pétursson',
-					deliverTo: '',
-					address: 'Pétursgata 99',
-					postcode: '110',
-					mobilePhoneNumber: '9876543'
+				var response = {
+					user: {
+						nin: '9876543210',
+						name: 'Pétur Pétursson',
+						deliverTo: '',
+						address: 'Pétursgata 99',
+						postcode: '110',
+						mobilePhoneNumber: '9876543'
+					},
+					misc: 'Misc'
 				};
 				if (code == '1234') {
-					dfd.resolve(rUser);
+					dfd.resolve(response);
 				}
 				else {
 					dfd.reject('Villa: Rangur kóði!');
@@ -527,6 +571,7 @@
 			}, 1500);
 			return dfd.promise();
 		};
+
 		getUser = function(nin) {
 			var dfd = $.Deferred();
 			setNinLoading(true);
@@ -670,6 +715,7 @@
 		};
 
 		returnToStore = function() {
+			console.info('returning to store');
 			if (chosenService == undefined || chosenService.length < 1) {
 				chosenService = {
 					name: 'quit'

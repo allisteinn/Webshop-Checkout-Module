@@ -4,4 +4,8 @@
 	<p>
 		<a class="btn btn-primary" role="button" ng-click="complexWebpage.startCheckout()">Byrja checkout</a>
 	</p>
+	<div ng-show="lastResult">
+		<h3>Niðurstöður frá plugin</h3>
+		<p>{{lastResult}}</p>
+	</div>
 </div>

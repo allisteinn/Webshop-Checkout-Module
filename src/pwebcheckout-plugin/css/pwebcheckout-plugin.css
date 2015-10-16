@@ -41,6 +41,11 @@
 	color: #dddddd;
 }
 
+.webcheckout input {
+	padding-left: 2px;
+	padding-right: 2px;
+}
+
 .webcheckout > .ui-dialog-content > .choose-service {
 	display: none;
 }
@@ -181,10 +186,10 @@
 	width: 300px;
 }
 .webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > input.nin {
-	width: 100px;
+	width: 104px;
 }
 .webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > input.phone-number {
-	width: 70px;
+	width: 74px;
 }
 .webcheckout > .ui-dialog-content > .userinfo > .row > .userinput > input.address {
 }
@@ -255,7 +260,7 @@
 }
 .webcheckout > .ui-dialog-content > .login > .row > .userinput.phone-number > input {
 	margin-right: 30px;
-	width: 70px;
+	width: 74px;
 }
 
 /* 80px + 40px = 120px*/
@@ -264,7 +269,7 @@
 }
 .webcheckout > .ui-dialog-content > .login > .row > .userinput.code > input {
 	margin-right: 50px;
-	width: 40px;
+	width: 46px;
 }
 
 .webcheckout > .ui-dialog-content > .login > .loading {
