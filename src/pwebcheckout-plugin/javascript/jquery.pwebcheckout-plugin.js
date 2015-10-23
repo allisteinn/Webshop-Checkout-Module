@@ -89,18 +89,31 @@
 					nin: '',
 					name: '',
 					deliverTo: '',
-					address: '',
-					postcode: '',
-					mobilePhoneNumber: ''
+					addresses: [],
+					phoneNumber: '',
+					chosenAddress: {
+						address: '',
+						postalCode: ''
+					}
 				},
 				webcheckoutResult = $.Deferred(),
 				chosenService;
 
 		init = function(newUser) {
-			$.extend(user, newUser);
+			$.extend(true, user, newUser);
+			console.info('extend:done');
+			if (user.addresses && user.addresses.length > 0 && 
+				(user.chosenAddress.address == undefined || user.chosenAddress.address.length < 1)) {
+				console.info('assignchosen:done');
+				user.chosenAddress.address = user.addresses[0].address;
+				user.chosenAddress.postalCode = user.addresses[0].postalCode;
+			}
+			console.info(user);
 
 			// Open up our modal dialog
 			$('#pwebcheckout-area').dialog({
+				buttons: [],
+
 				close: function(event, ui) {
 					returnToStore();
 				},
@@ -145,13 +158,14 @@
 
 			var loginState = 0;
 			$('.userinput.phone-number').toggle('fade');
+
 			$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
 			$('#pwebcheckout-login-nameBtn').button({label: 'Áfram'});
 
 			if (outputMessage != undefined && outputMessage.length > 0) {
-				setLoginLoading(true, 0, outputMessage);
+				setLoginLoading(true, 0, false, outputMessage);
 				setTimeout(function() {
-					setLoginLoading(false, 0, outputMessage);
+					setLoginLoading(false, 0, false, outputMessage);
 				}, 1000);
 			}
 
@@ -159,14 +173,20 @@
 				initUserInfoView();
 			});
 
+			// Allow triggering next step when 'enter' is pressed
+			$('.userinput.phone-number').keyup(function(e) {
+				if (e.which == 13)
+					$('#pwebcheckout-login-nameBtn').trigger('click');
+			});
+			// Or when we click 'next'
 			$('#pwebcheckout-login-nameBtn').click(function() {
 				var name = $('#pwebcheckout-login-name').val();
 				
 				if (validate.isNumber(name, 7)) {
-					setLoginLoading(true, 1);
+					setLoginLoading(true, 1, true);
 					requestLogin(name)
 					.done(function() {
-						setLoginLoading(false, 1);
+						setLoginLoading(false, 1, true);
 						$('.userinput.phone-number').remove();
 						$('.userinput.code').toggle('fade');
 						$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
@@ -178,48 +198,65 @@
 							initUserInfoView();
 						});
 
+						$('.userinput.code').keyup(function(e) {
+							if (e.which == 13)
+								$('#pwebcheckout-login-codeBtn').trigger('click');
+						});
 						$('#pwebcheckout-login-codeBtn').click(function() {
 							var code = $('#pwebcheckout-login-code').val();
+							console.info(code);
 							
 							if (validate.isNumber(code, 4)) {
-								setLoginLoading(true, 2);
-								confirmLogin(code)
-								.done(function(response) {
-									$('.login').remove();
-									$.extend(user, response.user);
-									if (displayMode && displayMode.indexOf('skipuserinfo') > -1)
-										initChooseServiceView();
-									else
-										initUserInfoView();
+								setLoginLoading(true, 2, true);
+								confirmLogin(name, code)
+								.done(function(rToken) {
+									console.info('confirmLogin:done');
+									getUser(rToken.token)
+									.done(function(rUser) {
+										console.info('getUser:done');
+										$('.login').remove();
+										$.extend(true, user, rUser);
+										console.info(user);
+										console.info(rUser);
+										if (displayMode && displayMode.indexOf('skipuserinfo') > -1)
+											initChooseServiceView();
+										else 
+											initUserInfoView();
+									})
+									.fail(function(error) {
+										console.info(error);
+										initLoginView(getErrorMessage(error));
+									});
+									
 								})
 								.fail(function(error) {
-									initLoginView(error);
+									initLoginView(getErrorMessage(error));
 								});
 							}
 							else {
-								setLoginLoading(true, 0, 'Villa! Ógildur kóði');
+								setLoginLoading(true, 0, false, 'Villa! Ógildur kóði');
 								setTimeout(function() {
-									setLoginLoading(false, 0, 'Villa! Ógildur kóði');
+									setLoginLoading(false, 0, false, 'Villa! Ógildur kóði');
 								}, 1000);
 							}
 							
 						});
 					})
 					.fail(function(error) {
-						setLoginLoading(false, 2, error);
+						setLoginLoading(false, 2, true, getErrorMessage(error));
 					});
 				}
 				else {
-					setLoginLoading(true, 0, 'Villa! Ógilt símanúmer');
+					setLoginLoading(true, 0, false, 'Villa! Ógilt símanúmer');
 					setTimeout(function() {
-						setLoginLoading(false, 0, 'Villa! Ógilt símanúmer');
+						setLoginLoading(false, 0, false, 'Villa! Ógilt símanúmer');
 					}, 1000);
 				}
 			});
 		};
 
 		initUserInfoView = function() {
-			var html = '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Berist til</label><input type="text" id="pwebcheckout-deliver-to" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div>';
+			var html = '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Berist til</label><input type="text" id="pwebcheckout-deliver-to" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" autofocus title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div>';
 
 			// Load our html and display it
 			loadHtml(html, 2);
@@ -227,16 +264,16 @@
 
 			// Add all postcodes if we haven't done so previously
 			var allPostcodes = [
-				{value: '101', full: '101 Reykjavík'},
-				{value: '103', full: '103 Reykjavík'},
-				{value: '104', full: '104 Reykjavík'},
-				{value: '105', full: '105 Reykjavík'},
-				{value: '107', full: '107 Reykjavík'},
-				{value: '108', full: '108 Reykjavík'},
-				{value: '109', full: '109 Reykjavík'},
-				{value: '110', full: '110 Reykjavík'},
-				{value: '860', full: '860 Hvolsvöllur'},
-				{value: '870', full: '870 Vík'}
+				{id: '101', name: '101 Reykjavík'},
+				{id: '103', name: '103 Reykjavík'},
+				{id: '104', name: '104 Reykjavík'},
+				{id: '105', name: '105 Reykjavík'},
+				{id: '107', name: '107 Reykjavík'},
+				{id: '108', name: '108 Reykjavík'},
+				{id: '109', name: '109 Reykjavík'},
+				{id: '110', name: '110 Reykjavík'},
+				{id: '860', name: '860 Hvolsvöllur'},
+				{id: '870', name: '870 Vík'}
 			];
 			addOptions(allPostcodes, $('#pwebcheckout-postcode'));
 
@@ -249,12 +286,17 @@
 				user.nin = $('#pwebcheckout-nin').val();
 				user.name = $('#pwebcheckout-name').val();
 				user.deliverTo = $('#pwebcheckout-deliver-to').val();
-				user.address = $('#pwebcheckout-address').val();
-				user.postcode = $('#pwebcheckout-postcode option:selected').val();
-				user.mobilePhoneNumber = $('#pwebcheckout-mobile-phone-number').val();;
-				console.info($('pwebcheckout'));
-				user.postcodeFull = $('#pwebcheckout-postcode option:selected').text();
-				console.info(user);
+				var addr = {
+					address: $('#pwebcheckout-address').val(), 
+					postalCode: $('#pwebcheckout-postcode option:selected').val()
+				};
+				user.chosenAddress.address = $('#pwebcheckout-address').val();
+				user.chosenAddress.postalCode = $('#pwebcheckout-postcode option:selected').val();
+
+				user.addresses = [];
+				user.addresses.push(user.chosenAddress);
+
+				user.phoneNumber = $('#pwebcheckout-mobile-phone-number').val();
 
 				if (displayMode && displayMode.indexOf('skipdeliverymethod') > -1) {
 					$('#pwebcheckout-area').dialog('close');
@@ -285,24 +327,33 @@
 				var fullhtml = '<div class="choose-service"><div class="container left"><div class="title"><span>Heimsending</span></div><div class="horizontal-line"></div><div class="content"><p>Hægt er að panta heimsendingu, gegn gjaldi, í þeim póstnúmerum þar sem Pósturinn er með heimaksturskerfi.</p><div class="row"><div class="userinput get"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu Póstnúmer...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendHomeBtn" tabindex="1" title="Velja1" autofocus></button></div></div><div class="container center"><div class="title"><span>Sækja á pósthús</span></div><div class="horizontal-line"></div><div class="content"><p>Pósthús eru staðsett um allt land, eða á um 60 stöðum. Finndu staðsetningu, opnunartíma og þjónustustig á hvaða pósthúsi sem er. Þú getur einnig leitað á Íslandskorti.</p><div class="row"><div class="userinput get"><select id="pwebcheckout-posthouse" class="ui-corner-all posthouse"><option selected disabled style="display:none;">Veldu Pósthús...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendPosthouseBtn" tabindex="2" title="Velja2"></button></div></div><div class="container right"><div class="title"><span>Póstbox</span></div><div class="horizontal-line"></div><div class="content"><p>Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna.</p><div class="row"><div class="userinput"><label></label><input type="text" class="ui-corner-all postbox" placeholder="P-Númer..."></div></div><div class="row"><div class="userinput get"><select id="pwebcheckout-postbox" class="ui-corner-all postbox"><option selected disabled style="display:none;">Veldu Póstbox...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendPostboxBtn" tabindex="3" title="Velja3"></button></div></div></div>';
 
 				var html = '',
-						postboxHtml = '<div class="title"><span>Póstbox</span></div><div class="horizontal-line"></div><div class="content"><p>Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna.</p><div class="row"><div class="userinput"><label></label><input type="text" class="ui-corner-all postbox" placeholder="P-Númer..."></div></div><div class="row"><div class="userinput get"><select id="pwebcheckout-postbox" class="ui-corner-all postbox"><option selected disabled style="display:none;">Veldu Póstbox...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendPostboxBtn" tabindex="3" title="Velja3"></button></div>',
-						posthouseHtml = '<div class="title"><span>Sækja á pósthús</span></div><div class="horizontal-line"></div><div class="content"><p>Pósthús eru staðsett um allt land, eða á um 60 stöðum. Finndu staðsetningu, opnunartíma og þjónustustig á hvaða pósthúsi sem er. Þú getur einnig leitað á Íslandskorti.</p><div class="row"><div class="userinput get"><select id="pwebcheckout-posthouse" class="ui-corner-all posthouse"><option selected disabled style="display:none;">Veldu Pósthús...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendPosthouseBtn" tabindex="2" title="Velja2"></button></div>',
-						homeHtml = '<div class="title"><span>Heimsending</span></div><div class="horizontal-line"></div><div class="content"><p>Hægt er að panta heimsendingu, gegn gjaldi, í þeim póstnúmerum þar sem Pósturinn er með heimaksturskerfi.</p><div class="row"><div class="userinput get"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu Póstnúmer...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendHomeBtn" tabindex="1" title="Velja1" autofocus></button></div>',
-						smallpackageHtml = '',
+						send = {
+							smallPackage: '<h3 id="pwebcheckout-send-small-package">Smápakki</h3><div><div class="row"><span>Kemur inn um lúguna.</span></div><div class="row"><div class="userinput get"><label>Heimilisfang</label><input type="text" id="pwebcheckout-small-package-address" class="address ui-corner-all"><select id="pwebcheckout-small-package-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu Póstnúmer...</option></select></div></div></div>',
+							home: '<h3 id="pwebcheckout-send-home">Heimsending</h3><div><div class="row"><span>Hægt er að panta heimsendingu, gegn gjaldi, í þeim póstnúmerum þar sem Pósturinn er með heimaksturskerfi.</span></div><div class="row"><div class="userinput get"><label>Heimilisfang</label><input type="text" id="pwebcheckout-home-address" class="address ui-corner-all"><select id="pwebcheckout-home-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu Póstnúmer...</option></select></div></div></div>',
+							postbox: '<h3 id="pwebcheckout-send-postbox">Póstbox</h3><div><div class="row"><span>Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna.</span></div><div class="row"><div class="userinput get"><label>Póstbox</label><select id="pwebcheckout-postbox" class="ui-corner-all postbox"><option selected disabled style="display:none;">Veldu Póstbox...</option></select></div></div></div>',
+							posthouse: '<h3 id="pwebcheckout-send-posthouse">Sækja á pósthús</h3><div><div class="row"><span>Pósthús eru staðsett um allt land, eða á um 60 stöðum. Finndu staðsetningu, opnunartíma og þjónustustig á hvaða pósthúsi sem er. Þú getur einnig leitað á Íslandskorti.</span></div><div class="row"><div class="userinput get"><label>Pósthús</label><select id="pwebcheckout-posthouse" class="ui-corner-all posthouse"><option selected disabled style="display:none;">Veldu Pósthús...</option></select></div></div></div>',
+							pickup: '<h3 id="pwebcheckout-send-pickup">Sækja í verslun</h3><div><div class="row"><span>Þá getur þú sótt vöruna þegar verslunin er opin.</span></div></div>'
+						},
 						noMethodsHtml = '<div class="title">No methods allowed</div>';
 
 				// Fetch the html(s) we are going to use
 				var htmls = [];
 				if (availableServices.length > 0) {
 
-					if ($.inArray('home', availableServices) > -1)
-						htmls.push(homeHtml);
+					if ($.inArray('smallpackage', availableServices) > -1)
+						htmls.push(send.smallPackage);
 
-					if ($.inArray('posthouse', availableServices) > -1)
-						htmls.push(posthouseHtml);
+					if ($.inArray('home', availableServices) > -1)
+						htmls.push(send.home);
 
 					if ($.inArray('postbox', availableServices) > -1)
-						htmls.push(postboxHtml);
+						htmls.push(send.postbox);
+
+					if ($.inArray('posthouse', availableServices) > -1)
+						htmls.push(send.posthouse);
+
+					if ($.inArray('pickup', availableServices) > -1)
+						htmls.push(send.pickup)
 					
 					// ignoring smallpackages for now
 					/*if ($.inArray('smallpackage', availableServices))
@@ -315,14 +366,57 @@
 
 				// Load our html and display it
 				loadHtml(html, 3);
-				$('.ui-dialog-content').find('.choose-service').toggle('fade');
 
-				// Load available delivery methods
+				$('#pwebcheckout-choose-service').accordion({
+					active: 0,
+					create: function(event, ui) {
+
+					},
+					/*clearStyle: true,*/
+					heightStyle: 'fill'
+				});
+
+				$('.choose-service').toggle('fade');
+				// We need to redraw our accordion to get correct height as it was drawn into a "display:none;" container
+				$('#pwebcheckout-choose-service').accordion('refresh');
+
+				$('#pwebcheckout-area').dialog('option', 'buttons',
+					[
+						{
+							text: 'Staðfesta val',
+							click: function() {
+								var active = $('#pwebcheckout-choose-service').accordion('option', 'active');
+								var id = $('#pwebcheckout-choose-service h3').eq(active).get(0).id.toLowerCase();
+
+								if (id.indexOf('smallpackage') > -1)
+									chooseService('smallpackage', 'Smápakki', $('#pwebcheckout-address').val() + ', ' + $('pwebcheckout-postcode option:selected').text(), $('#pwebcheckout-postcode option:selected').val())
+								else if (id.indexOf('home') > -1)
+									chooseService('home', 'Heim', $('#pwebcheckout-address').val() + ', ' + $('#pwebcheckout-postcode option:selected').text(), $('#pwebcheckout-postcode option:selected').val());
+								else if (id.indexOf('postbox') > -1)
+									chooseService('postbox', 'Póstbox', $('#pwebcheckout-postbox option:selected').text(), $('#pwebcheckout-postbox option:selected').val());
+								else if (id.indexOf('posthouse') > -1)
+									chooseService('posthouse', 'Pósthús', $('#pwebcheckout-posthouse option:selected').text(), $('#pwebcheckout-posthouse option:selected').val());
+								else if (id.indexOf('pickup') > -1)
+									chooseService('pickup', 'Sækja í verslun');
+								else
+									chooseService('none', 'Ekkert valið');
+							}
+						}
+					]
+				);
+
+				// Load details for each available delivery method
 				if (availableServices == undefined || $.inArray('home', availableServices) > -1) {
-					// getHomePostcodes() ?
-					getPostcodes()
+					getHomePostcodes()
 					.done(function(rPostcodes) {
-						addOptions(rPostcodes, $('#pwebcheckout-postcode'));
+						addOptions(rPostcodes, $('#pwebcheckout-home-postcode'));
+						fillOutUserInfo(user);
+					});
+				}
+				if (availableServices == undefined || $.inArray('smallpackage', availableServices) > -1) {
+					getSmallPackagesPostcodes()
+					.done(function(rPostcodes) {
+						addOptions(rPostcodes, $('#pwebcheckout-small-package-postcode'));
 						fillOutUserInfo(user);
 					});
 				}
@@ -336,24 +430,12 @@
 					getPostboxes()
 					.done(function(rPostboxes) {
 						addOptions(rPostboxes, $('#pwebcheckout-postbox'));
+						if (user && user.postbox && user.postbox.id) {
+							$('#pwebcheckout-postbox').val(user.postbox.id);
+						}
 					});
 				}
-				/*if (availableServices == undefined || $.inArray('smallpackage', availableServices) {
-					getSmallPackages()
-					.done(function(rPosthouses) {
-						
-					});
-				}*/
 
-				$('#pwebcheckout-sendHomeBtn').click(function() {
-					chooseService('home', 'Heim', $('#pwebcheckout-address').val() + ', ' + $('#pwebcheckout-postcode option:selected').text(), $('#pwebcheckout-postcode option:selected').val());
-				});
-				$('#pwebcheckout-sendPostboxBtn').click(function() {
-					chooseService('postbox', 'Póstbox', $('#pwebcheckout-postbox option:selected').text(), $('#pwebcheckout-postbox option:selected').val());
-				});
-				$('#pwebcheckout-sendPosthouseBtn').click(function() {
-					chooseService('posthouse', 'Pósthús', $('#pwebcheckout-posthouse option:selected').text(), $('#pwebcheckout-posthouse option:selected').val());
-				});
 			});
 		};
 
@@ -368,51 +450,13 @@
 		};
 
 		createChooseServiceHtml = function(htmls) {
-			var html = '',
-					chooseServiceDiv = '<div class="choose-service">',
-					containerDiv = {
-						left: '<div class="container left">',
-						center: '<div class="container center">',
-						right: '<div class="container right">',
-						empty: '<div class="container empty">'
-					},
-					divEnd = '</div>';
+			var html = '<div class="choose-service"><h2>Veldu sendingarmáta</h2><div id="pwebcheckout-choose-service">',
+					end = '</div></div>';
 
-			console.info('-----');
-			console.info(htmls);
-			console.info('-----');
-
-			switch(htmls.length) {
-				case 0: 	console.info('no services available');
-									break;
-
-				case 1: 	html = 	chooseServiceDiv + 
-														containerDiv.empty + divEnd + 
-														containerDiv.center + htmls[0] + divEnd + 
-														containerDiv.empty + divEnd + 
-													divEnd;
-									break;
-
-				case 2: 	html = 	chooseServiceDiv + 
-														containerDiv.left + htmls[0] + divEnd + 
-														container.empty + divEnd + 
-														containerDiv.right + htmls[1] + divEnd + 
-												 divEnd;
-									break;
-
-				case 3: 	html = 	chooseServiceDiv + 
-														containerDiv.left + htmls[0] + divEnd + 
-														containerDiv.center + htmls[1] + divEnd + 
-														containerDiv.right + htmls[2] + divEnd + 
-												 divEnd;
-									break;
-
-				case 4: 	console.info('Not implemented');
-									break;
-
-				default: 	console.info('htmls.length not 0-4')
-									break;
+			for (var i = 0; i < htmls.length; i++) {
+				html += htmls[i];
 			}
+			html += end;
 
 			return html;
 		};
@@ -430,9 +474,6 @@
 					workingElement = element.parent().find('.ui-dialog-content').length > 0 || 
 													 classes.indexOf('nin') > -1 ? 
 													 element.parent() : element.parent().parent();
-			console.info(image);
-			console.info(displaySpan);
-			console.info(workingElement);
 			
 			if (start) {
 				console.info('start loading...');
@@ -475,39 +516,27 @@
 			var displayText = start ? 'Sæki upplýsingar...': 'Upplýsingar sóttar!';
 			setLoading(start, displayText, 'input', $('#pwebcheckout-nin'), 'nin');
 		};
-		setPostcodeLoading = function(start) {
-			if ($('#pwebcheckout-sendHomeBtn') != undefined) {
-				$('#pwebcheckout-sendHomeBtn').button({label:'Áfram'});
-				$('#pwebcheckout-sendHomeBtn').prop('disabled',start);
-			}
+		setPostcodeLoading = function(start, element) {
 			if (!start)
-				$('#pwebcheckout-postcode').parent().toggle('fade');
-			setLoading(start, undefined, 'select', $('#pwebcheckout-postcode'), 'postcode');
+				element.parent().toggle('fade');
+			setLoading(start, undefined, 'select', element, 'postcode');
 		};
 		setPostboxLoading = function(start) {
-			if ($('#pwebcheckout-sendPostboxBtn') != undefined) {
-				$('#pwebcheckout-sendPostboxBtn').button({label:'Áfram'});
-				$('#pwebcheckout-sendPostboxBtn').prop('disabled',start);					
-			}
 			if (!start)
 				$('#pwebcheckout-postbox').parent().toggle('fade');
 			setLoading(start, undefined, 'select', $('#pwebcheckout-postbox'), 'postbox');
 		};
 		setPosthouseLoading = function(start) {
-			if ($('#pwebcheckout-sendPosthouseBtn') != undefined) {
-				$('#pwebcheckout-sendPosthouseBtn').button({label:'Áfram'});
-				$('#pwebcheckout-sendPosthouseBtn').prop('disabled',start);
-			}
 			if (!start)
 				$('#pwebcheckout-posthouse').parent().toggle('fade');
 			setLoading(start, undefined, 'select', $('#pwebcheckout-posthouse'), 'posthouse');
 		};
-		setLoginLoading = function(start, step, errorText) {
+		setLoginLoading = function(start, step, includeButtons, errorText) {
 			var element = $('.output'),
 					displayText;
 
-			if (errorText == undefined || errorText.length < 1)
-				$('.userinput').find('button').prop('disabled',start);
+			if (includeButtons)
+				$('.userinput').find('button').prop('disabled', start);
 
 			if (step == 1)
 				displayText = 'Sendi SMS kóða...';
@@ -539,71 +568,185 @@
 			}
 		};
 
+		// 8676137 or 8251077
 		requestLogin = function(phoneNumber) {
-			var dfd = $.Deferred();
+			var dfd = $.Deferred(),
+					postData = {phoneNumber: phoneNumber};
 			setTimeout(function() {
-				var response = 'success!';
-				dfd.resolve(response);
-			}, 1500);
-			return dfd.promise();
-		};
-		confirmLogin = function(code) {
-			var dfd = $.Deferred();
-			setTimeout(function() {
-				var response = {
-					user: {
-						nin: '9876543210',
-						name: 'Pétur Pétursson',
-						deliverTo: '',
-						address: 'Pétursgata 99',
-						postcode: '110',
-						mobilePhoneNumber: '9876543'
-					},
-					misc: 'Misc'
-				};
-				if (code == '1234') {
-					dfd.resolve(response);
-				}
-				else {
-					dfd.reject('Villa: Rangur kóði!');
-				}
-				
-			}, 1500);
-			return dfd.promise();
-		};
 
-		getUser = function(nin) {
-			var dfd = $.Deferred();
-			setNinLoading(true);
-			setTimeout(function() {
-				var response = {
-					name: 'Guðmundur Guðmundsson',
-					address: 'Flúðasel 99',
-					postcode: '109'
-				};
-				setNinLoading(false);
-				dfd.resolve(response);
+					$.ajax({
+						type: 'POST',
+						url: 'http://T2097:8945/webcheckout/authentication/pin',
+						contentType: 'application/json; charset=UTF-8',
+						data: JSON.stringify(postData)
+					})
+					.done(function(data) {
+						console.info(data);
+						dfd.resolve(data);
+					})
+					.error(function(data) {
+						console.info(data);
+						dfd.reject(data);
+					});
 
 			}, 1000);
 			return dfd.promise();
 		};
-		getPostcodes = function() {
-			setPostcodeLoading(true);
+		confirmLogin = function(phoneNumber, code) {
+			var dfd = $.Deferred(),
+					postData = {phoneNumber: phoneNumber, pin: code};
+
+			setTimeout(function() {
+
+				$.ajax({
+					type: 'POST',
+					url: 'http://T2097:8945/webcheckout/authentication/token',
+					contentType: 'application/json; charset=UTF-8',
+					data: JSON.stringify(postData)
+				})
+				.done(function(data) {
+					console.info(data);
+					// Make sure the token is present
+					if (data) {
+						dfd.resolve(data);
+					}
+					else
+						dfd.reject(data);
+				})
+				.error(function(data) {
+					console.info(data);
+					dfd.reject(data);
+				});
+
+			}, 1000);
+			return dfd.promise();
+		};
+
+		getErrorMessage = function(error, defaultMessage) {
+			var message;
+			if (error && error.responseJSON) {
+				if (error.responseJSON.message)
+					message = error.responseJSON.message;
+				else if (error.responseJSON.error)
+					message = error.responseJSON.error;
+				else if (error.responseJSON.exception)
+					message = error.responseJSON.exception;
+				else if (defaultMessage && defaultMessage.length > 0)
+					message = defaultMessage;
+				else
+					message = 'Óvænt villa, reyndu aftur'
+			}
+			return message;
+		};
+
+		getUser = function(token) {
+			var dfd = $.Deferred();
+			$.ajax({
+				type: 'GET',
+				url: 'http://T2097:8945/webcheckout/users',
+				headers: {'Authorization': 'bearer ' + token}
+			})
+			.done(function(data) {
+				// if no default address, then set it
+				if (data.addresses && data.addresses.length > 0 && 
+					(data.chosenAddress == undefined || data.chosenAddress.length < 1)) {
+					data.chosenAddress = {
+						address: data.addresses[0].address,
+						postalCode: data.addresses[0].postalCode,
+					};
+				}
+				console.info(data);
+				if (data)
+					dfd.resolve(data);
+				else
+					dfd.reject(data);
+			})
+			.error(function(data) {
+				console.info(data);
+				dfd.reject(data);
+			});
+			return dfd.promise();
+		};
+		getUserByNin = function(nin) {
+			var dfd = $.Deferred();
+			setNinLoading(true);
+			setTimeout(function() {
+				var data = {
+					name: 'Guðmundur Guðmundsson',
+					addresses: [
+						{
+							address: 'Flúðasel 99',
+							postalCode: '109'
+						}
+					]
+				};
+				// if no default address, then set it
+				if (data.addresses && data.addresses.length > 0 && 
+					(data.chosenAddress == undefined || data.chosenAddress.length < 1)) {
+					data.chosenAddress = {
+						address: data.addresses[0].address,
+						postalCode: data.addresses[0].postalCode,
+					};
+				}
+				setNinLoading(false);
+				dfd.resolve(data);
+
+			}, 1000);
+			return dfd.promise();
+		};
+
+		getPostcodes = function(element) {
+			if (element)
+				setPostcodeLoading(true, element);
+			else
+				setPostcodeLoading(true, $('#pwebcheckout-postcode'));
+
 			var dfd = $.Deferred();
 			setTimeout(function() {
 				var response = [
-					{value: '101', full: '101 Reykjavík'},
-					{value: '103', full: '103 Reykjavík'},
-					{value: '104', full: '104 Reykjavík'},
-					{value: '105', full: '105 Reykjavík'},
-					{value: '107', full: '107 Reykjavík'},
-					{value: '108', full: '108 Reykjavík'},
-					{value: '109', full: '109 Reykjavík'},
-					{value: '110', full: '110 Reykjavík'}
+					{id: '101', name: '101 Reykjavík'},
+					{id: '103', name: '103 Reykjavík'},
+					{id: '104', name: '104 Reykjavík'},
+					{id: '105', name: '105 Reykjavík'},
+					{id: '107', name: '107 Reykjavík'},
+					{id: '108', name: '108 Reykjavík'},
+					{id: '109', name: '109 Reykjavík'},
+					{id: '110', name: '110 Reykjavík'}
 				];
-				setPostcodeLoading(false);
+
+				if (element)
+					setPostcodeLoading(false, element);
+				else
+					setPostcodeLoading(false, $('#pwebcheckout-postcode'));
+
 				dfd.resolve(response);
 			}, 2000);
+			return dfd.promise();
+		};
+		getHomePostcodes = function() {
+			var dfd = $.Deferred();
+			setTimeout(function() {
+				getPostcodes($('#pwebcheckout-home-postcode'))
+				.done(function(response) {
+					dfd.resolve(response);
+				})
+				.fail(function(error) {
+					dfd.reject(error);
+				});
+			}, 500);
+			return dfd.promise();
+		};
+		getSmallPackagesPostcodes = function() {
+			var dfd = $.Deferred();
+			setTimeout(function() {
+				getPostcodes($('#pwebcheckout-small-package-postcode'))
+				.done(function(response) {
+					dfd.resolve(response);
+				})
+				.fail(function(error) {
+					dfd.reject(error);
+				});
+			}, 500);
 			return dfd.promise();
 		};
 		getPostboxes = function() {
@@ -611,13 +754,14 @@
 			var dfd = $.Deferred();
 			setTimeout(function() {
 				var response = [
-					{value: '1', full: 'Víðir Sólvallargötu'},
-					{value: '2', full: 'Barónstíg'},
-					{value: '3', full: 'Mjódd'},
-					{value: '4', full: 'Húsgagnahöll'},
-					{value: '5', full: 'Smáralind'},
-					{value: '6', full: 'Olís Garðabæ'},
-					{value: '7', full: 'AO Kaplakrika'}
+					{id: 'IS101A', name: 'Víðir Sólvallagötu', address: 'Sólvallagötu', postalCode: '101'},
+					{id: 'IS101B', name: '10-11 Barónstíg', address: 'Barónstíg', postalCode: '101'},
+					{id: 'IS104A', name: 'Olís Álfheimum', address: 'Álfheimum', postalCode: '104'},
+					{id: 'IS109A', name: 'Mjódd', address: 'Mjódd', postalCode: '109'},
+					{id: 'IS110A', name: 'Húsgagnahöllinni', address: 'Höfðabakka', postalCode: '110'},
+					{id: 'IS201A', name: 'Smáralind', address: 'Smáralind', postalCode: '201'},
+					{id: 'IS210A', name: 'Olís', address: 'Olís', postalCode: '210'},
+					{id: 'IS220A', name: 'AO Kaplakrika', address: 'Kaplakrika', postalCode: '220'}
 				];
 				setPostboxLoading(false);
 				dfd.resolve(response);
@@ -629,13 +773,13 @@
 			var dfd = $.Deferred();
 			setTimeout(function() {
 				var response = [
-					{value: '1', full: 'Pósthússtræti 5, 101'},
-					{value: '2', full: 'Síðumúla 3-5, 108'},
-					{value: '3', full: 'Þönglabakka 4, 109'},
-					{value: '4', full: 'Höfðabakka 9, 110'},
-					{value: '5', full: 'Stórhöfða 32, 110'},
-					{value: '6', full: 'Austurvegi 4a, 860'},
-					{value: '7', full: 'Póstbíll, 870'}
+					{id: '1', name: 'Pósthússtræti 5, 101'},
+					{id: '2', name: 'Síðumúla 3-5, 108'},
+					{id: '3', name: 'Þönglabakka 4, 109'},
+					{id: '4', name: 'Höfðabakka 9, 110'},
+					{id: '5', name: 'Stórhöfða 32, 110'},
+					{id: '6', name: 'Austurvegi 4a, 860'},
+					{id: '7', name: 'Póstbíll, 870'}
 				];
 				setPosthouseLoading(false);
 				dfd.resolve(response);
@@ -648,8 +792,8 @@
 			setFullScaleLoading(true, 'Sæki lista yfir mögulega sendingarmáta...');
 			var dfd = $.Deferred();
 			setTimeout(function() {
-				var response = ['posthouse', 'postbox', 'home', 'smallpackage'];
-				if (parseInt(user.postcode) > 800) {
+				var response = ['posthouse', 'postbox', 'home', 'smallpackage', 'pickup'];
+				if (parseInt(user.chosenAddress.postalCode) > 800) {
 					response = ['posthouse', 'postbox'];
 				}
 				setFullScaleLoading(false);
@@ -672,7 +816,10 @@
 			// Check for length < 2, as we have one (disabled) option element with instructional text
 			if (!element.find('option') || element.find('option').length < 2) {
 				for (var i = 0; i < options.length; i++) {
-					element.append('<option value="' + options[i].value + '" >' + options[i].full + '</option>');
+					element.append($('<option>', {
+						value: options[i].id,
+						text: options[i].name
+					}));
 				}
 			}
 		};
@@ -686,7 +833,7 @@
 					lastNinEntry = $('#pwebcheckout-nin').val();
 					user.nin = lastNinEntry;
 					if (user.nin.length == 10) {
-						getUser(user.nin)
+						getUserByNin(user.nin)
 						.done(function(userResponse) {
 							$.extend(user, userResponse);
 							fillOutUserInfo(user);
@@ -705,12 +852,22 @@
 					$('#pwebcheckout-nin').val(userinfo.nin);
 				if (userinfo.name)
 					$('#pwebcheckout-name').val(userinfo.name);
-				if (userinfo.address)
-					$('#pwebcheckout-address').val(userinfo.address);
-				if (userinfo.postcode)
-					$('#pwebcheckout-postcode').val(userinfo.postcode);
-				if (userinfo.mobilePhoneNumber)
-					$('#pwebcheckout-mobile-phone-number').val(userinfo.mobilePhoneNumber)
+				if (userinfo.chosenAddress && userinfo.chosenAddress.address) {
+					if ($('#pwebcheckout-address').length) {
+						$('#pwebcheckout-address').val(userinfo.chosenAddress.address);
+						$('#pwebcheckout-postcode').val(userinfo.chosenAddress.postalCode);
+					}
+					if ($('#pwebcheckout-home-address').length) {
+						$('#pwebcheckout-home-address').val(userinfo.chosenAddress.address);
+						$('#pwebcheckout-home-postcode').val(userinfo.chosenAddress.postalCode);
+					}
+					if ($('#pwebcheckout-small-package-address').length) {
+						$('#pwebcheckout-small-package-address').val(userinfo.chosenAddress.address);
+						$('#pwebcheckout-small-package-postcode').val(userinfo.chosenAddress.postalCode);
+					}
+				}					
+				if (userinfo.phoneNumber)
+					$('#pwebcheckout-mobile-phone-number').val(userinfo.phoneNumber)
 			}
 		};
 

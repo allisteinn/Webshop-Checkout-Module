@@ -48,104 +48,54 @@
 
 .webcheckout > .ui-dialog-content > .choose-service {
 	display: none;
+	height: 420px;
 }
 
-.webcheckout > .ui-dialog-content > .choose-service > .container {
-	/*border-radius: 4px;
-	border-style: solid;
-	border-width: 1px;*/
-	outline: 2px solid black;
+.webcheckout > .ui-dialog-content > .choose-service > h2 {
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > h3 {
+	color: #c00;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion {
+	width: 100%;
+}
+
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .row {
+	margin-left: 20px;
+	margin-right: 20px;
+	margin-top: 20px;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .row > .userinput.get {
+	display: none;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .row > .userinput > label {
+	display: block;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .row > .userinput > input.postbox {
 	display: inline-block;
-	min-height: 400px;
-	min-width: 50px;
-	vertical-align: text-top;
-	width: 30%;
+	margin-left: 5px;
+	width: 80px;
 }
-.webcheckout > .ui-dialog-content > .choose-service > .container.empty {
-	outline: none;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container.left {
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container.center {
-	margin-left: 5%;
-	margin-right: 5%;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container.right {
-}
-
-.webcheckout > .ui-dialog-content > .choose-service > .container > .title {
-	font-size: 1em;
-	font-weight: bold;
-	min-height: 45px;
-	padding-left: 10%;
-	padding-right: 10%;
-	text-align: center;
-}
-
-.webcheckout > .ui-dialog-content > .choose-service > .container .title > span {
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .row > .userinput > select {
 	display: inline-block;
-	line-height: 45px;
-	vertical-align: middle;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .row > .userinput > select.postcode {
+	margin-left: 5px;
+}
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .row > .userinput > select.posthouse {
+	display: block;
+	width: 200px;
 }
 
-.webcheckout > .ui-dialog-content > .choose-service > .container > .horizontal-line {
+.webcheckout > .ui-dialog-content > .choose-service > .ui-accordion > div > .horizontal-line {
 	border-bottom: 1px solid red;
 	margin-left: 5%;
 	margin-right: 5%;
 	width: 90%;
 }
-
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content {
-	display: block;
-	min-height: 310px;
-	padding: 10px;
-}
-
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row {
-	display:block;
-	margin-bottom: 10px;
-	width: 100%;
-}
-
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput {
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput.get {
-	display: none;
-}
-
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > label {
-	display: inline-block;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > input.postbox {
-	display: inline-block;
-	margin-left: 5px;
-	width: 80px;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > select {
-	display: inline-block;
-	margin-left: 5px;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > select.postcode {
-	margin-left: 0px;
-	margin-top: 5px;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .userinput > select.posthouse {
-	display: block;
-	margin-left: 0px;
-	width: 200px;
-}
-
-/*.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading {
-	display: inline-block;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading > span {
-	display: inline-block;
-	margin-left: 10px;
-}
-.webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading > img {
-	display: inline-block;
-	margin-left: 10px;
-}*/
+/*
 .webcheckout > .ui-dialog-content > .choose-service > .container > .content > .row > .loading {
 	display: block;
 	width: 100%;
@@ -154,16 +104,14 @@
 	margin-left: 0px;
 	position: relative;
 	left: 50%;
-	/* img width = 16px */
 	transform: translate(-8px, 0);
 }
-
 .webcheckout > .ui-dialog-content > .choose-service > .container > .footer {
 	height: 45px;
 	text-align: center;
 	vertical-align: text-bottom;
 }
-
+*/
 .webcheckout > .ui-dialog-content > .userinfo {
 	display: none;
 }
