@@ -81,7 +81,7 @@
 	$.fn.startWebcheckout(products, user, displaymode3, methods2);
 
 */
-	$.fn.startWebcheckout = function(storeProductInput, storeUserInput, displayMode, allowedDeliveryMethods) {
+	$.fn.startWebcheckout = function(storeProductInput, storeUserInput, storeId) {
 		var lastNinEntry = undefined,
 				loading = false,
 				currentStep = 0,
@@ -93,10 +93,16 @@
 					phoneNumber: '',
 					chosenAddress: {
 						address: '',
-						postalCode: ''
+						postalCode: '',
+						displayText: ''
 					}
 				},
 				webcheckoutResult = $.Deferred(),
+				localConfig = {
+					forceLogin: false,
+					forcePayment: false,
+					displayMode: ''
+				},
 				chosenService;
 
 		init = function(newUser) {
@@ -104,7 +110,6 @@
 			console.info('extend:done');
 			if (user.addresses && user.addresses.length > 0 && 
 				(user.chosenAddress.address == undefined || user.chosenAddress.address.length < 1)) {
-				console.info('assignchosen:done');
 				user.chosenAddress.address = user.addresses[0].address;
 				user.chosenAddress.postalCode = user.addresses[0].postalCode;
 			}
@@ -120,8 +125,8 @@
 
 				dialogClass: 'webcheckout',
 
-				minHeight: 600,
-				minWidth: 800,
+				height: 600,
+				width: 800,
 
 				modal: true,
 
@@ -137,129 +142,51 @@
 				$('.ui-dialog-content').find('div').remove();
 			}
 
-			// Find and add our initial view if we haven't done so previously
-			if (displayMode  && displayMode.indexOf('skiplogin') > -1) {
-				if (displayMode.indexOf('skipuserinfo') > -1) {
-					initChooseServiceView();
+			
+			getStoreConfig(storeId)
+			// config.forceLogin = false; config.forcePayment = false; config.displayMode = '';
+			.done(function(config) {
+				$.extend(true, localConfig, config);
+				// Find and add our initial view if we haven't done so previously
+				if (localConfig.displayMode.indexOf('skiplogin') > -1) {
+					if (localConfig.displayMode.indexOf('skipuserinfo') > -1) {
+						initChooseServiceView(true);
+					}
+					else {
+						initUserInfoView();
+					}
+				}
+				else if (localConfig.forceLogin) {
+					initLoginView();
 				}
 				else {
-					initUserInfoView();
+					console.info(localConfig.displayMode);
+					initUserInfoView(true);
 				}
-			}
-			else {
-				console.info(displayMode);
-				initLoginView();
-			}
+			})
+			.fail(function(error) {
+				// Use "default" settings
+				initUserInfoView(true);
+			});
+
+			
 		};
 
-		initLoginView = function(outputMessage) {
-			var html = '<div class="login"><p class="instructions">Þessa innskráningarleið er aðeins hægt að nota ef þú ert nú þegar skráð(ur) í Póstbox. Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna. Þú getur skráð þig á mappan.is eða notað rafræn skilríki til þess að skrá þig í þjónustuna. Rafræn skilríki eru auðveld leið til auðkenningar og undirritunar. Þau getur þú fengið í símann þinn eða í debetkortið. Á postur.is eru einföld myndbönd sem útskýra hvernig ferlið gengur fyrir sig.</p><div class="row centered"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits><br /><button id="pwebcheckout-login-skipBtn" title="Skrá upplýsingar handvirkt" tabindex="2" class="left"></button><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3" class="right"></button></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /><button id="pwebcheckout-login-skipBtn" title="Skrá upplýsingar handvirkt" tabindex="2" class="left"></button><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3" class="right"></button></div><div class="output"></div></div></div>';
+		initLoginView = function() {
+			var html = '<div class="login"><p class="instructions">Þessa innskráningarleið er aðeins hægt að nota ef þú ert nú þegar skráð(ur) í Póstbox. Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna. Þú getur skráð þig á mappan.is eða notað rafræn skilríki til þess að skrá þig í þjónustuna. Rafræn skilríki eru auðveld leið til auðkenningar og undirritunar. Þau getur þú fengið í símann þinn eða í debetkortið. Á postur.is eru einföld myndbönd sem útskýra hvernig ferlið gengur fyrir sig.</p><div class="row centered"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits autofocus><br /><span class="centerbutton"><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3"></button></span></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /><span class="centerbutton"><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3"></button></span></div><div class="output"></div></div></div>';
 			loadHtml(html, 1);
 
-			var loginState = 0;
-			$('.userinput.phone-number').toggle('fade');
-
-			$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
-			$('#pwebcheckout-login-nameBtn').button({label: 'Áfram'});
-
-			if (outputMessage != undefined && outputMessage.length > 0) {
-				setLoginLoading(true, 0, false, outputMessage);
-				setTimeout(function() {
-					setLoginLoading(false, 0, false, outputMessage);
-				}, 1000);
-			}
-
-			$('#pwebcheckout-login-skipBtn').click(function() {
-				initUserInfoView();
-			});
-
-			// Allow triggering next step when 'enter' is pressed
-			$('.userinput.phone-number').keyup(function(e) {
-				if (e.which == 13)
-					$('#pwebcheckout-login-nameBtn').trigger('click');
-			});
-			// Or when we click 'next'
-			$('#pwebcheckout-login-nameBtn').click(function() {
-				var name = $('#pwebcheckout-login-name').val();
-				
-				if (validate.isNumber(name, 7)) {
-					setLoginLoading(true, 1, true);
-					requestLogin(name)
-					.done(function() {
-						setLoginLoading(false, 1, true);
-						$('.userinput.phone-number').remove();
-						$('.userinput.code').toggle('fade');
-						$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
-						$('#pwebcheckout-login-codeBtn').button({label: 'Áfram'});
-
-						$('#pwebcheckout-login-code').focus();
-
-						$('#pwebcheckout-login-skipBtn').click(function() {
-							initUserInfoView();
-						});
-
-						$('.userinput.code').keyup(function(e) {
-							if (e.which == 13)
-								$('#pwebcheckout-login-codeBtn').trigger('click');
-						});
-						$('#pwebcheckout-login-codeBtn').click(function() {
-							var code = $('#pwebcheckout-login-code').val();
-							console.info(code);
-							
-							if (validate.isNumber(code, 4)) {
-								setLoginLoading(true, 2, true);
-								confirmLogin(name, code)
-								.done(function(rToken) {
-									console.info('confirmLogin:done');
-									getUser(rToken.token)
-									.done(function(rUser) {
-										console.info('getUser:done');
-										$('.login').remove();
-										$.extend(true, user, rUser);
-										console.info(user);
-										console.info(rUser);
-										if (displayMode && displayMode.indexOf('skipuserinfo') > -1)
-											initChooseServiceView();
-										else 
-											initUserInfoView();
-									})
-									.fail(function(error) {
-										console.info(error);
-										initLoginView(getErrorMessage(error));
-									});
-									
-								})
-								.fail(function(error) {
-									initLoginView(getErrorMessage(error));
-								});
-							}
-							else {
-								setLoginLoading(true, 0, false, 'Villa! Ógildur kóði');
-								setTimeout(function() {
-									setLoginLoading(false, 0, false, 'Villa! Ógildur kóði');
-								}, 1000);
-							}
-							
-						});
-					})
-					.fail(function(error) {
-						setLoginLoading(false, 2, true, getErrorMessage(error));
-					});
-				}
-				else {
-					setLoginLoading(true, 0, false, 'Villa! Ógilt símanúmer');
-					setTimeout(function() {
-						setLoginLoading(false, 0, false, 'Villa! Ógilt símanúmer');
-					}, 1000);
-				}
-			});
+			activateLogin(true);
 		};
 
-		initUserInfoView = function() {
-			var html = '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Berist til</label><input type="text" id="pwebcheckout-deliver-to" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" autofocus title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div>';
+		initUserInfoView = function(hasLogin) {
+			var html = {
+				withoutLogin: '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Berist til</label><input type="text" id="pwebcheckout-deliver-to" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" autofocus title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div>',
+				withLogin: '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="login left"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits><br /><div class="centerbutton"><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3" class="right"></button></div></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /><div class="centerbutton"><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3" class="right"></button></div></div></div><div class="right"><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Heimilisfangalisti</label><select id="pwebcheckout-addresses" class="ui-corner-all addresses"></select></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Póstnúmer</label><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div></div>'
+			};
 
 			// Load our html and display it
-			loadHtml(html, 2);
+			loadHtml(hasLogin? html.withLogin: html.withoutLogin, 2);
 			$('.ui-dialog-content').find('.userinfo').toggle('fade');
 
 			// Add all postcodes if we haven't done so previously
@@ -280,6 +207,10 @@
 			// Then load all userinfo if available (and select correct postcode)
 			loadUserInfo();
 
+			// And make sure our login form is working (if present)
+			if (hasLogin)
+				activateLogin(false);
+
 			// TODO: Verify and save userinfo before proceeding to next view
 			$('#pwebcheckout-complete-userinfo').click(function() {
 				// Verify & save information
@@ -298,7 +229,7 @@
 
 				user.phoneNumber = $('#pwebcheckout-mobile-phone-number').val();
 
-				if (displayMode && displayMode.indexOf('skipdeliverymethod') > -1) {
+				if (localConfig.displayMode.indexOf('skipdeliverymethod') > -1) {
 					$('#pwebcheckout-area').dialog('close');
 				}
 				else {
@@ -313,15 +244,7 @@
 
 				var availableServices = [];
 				if (rMethods != undefined && rMethods.length > 0) {
-					if (allowedDeliveryMethods == undefined) {
-						availableServices = rMethods;
-					}
-					else {
-						for (var i = 0; i < rMethods.length; i++) {
-							if ($.inArray(rMethods[i], allowedDeliveryMethods) > -1)
-								availableServices.push(rMethods[i]);
-						}
-					}
+					availableServices = rMethods;
 				}
 
 				var fullhtml = '<div class="choose-service"><div class="container left"><div class="title"><span>Heimsending</span></div><div class="horizontal-line"></div><div class="content"><p>Hægt er að panta heimsendingu, gegn gjaldi, í þeim póstnúmerum þar sem Pósturinn er með heimaksturskerfi.</p><div class="row"><div class="userinput get"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu Póstnúmer...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendHomeBtn" tabindex="1" title="Velja1" autofocus></button></div></div><div class="container center"><div class="title"><span>Sækja á pósthús</span></div><div class="horizontal-line"></div><div class="content"><p>Pósthús eru staðsett um allt land, eða á um 60 stöðum. Finndu staðsetningu, opnunartíma og þjónustustig á hvaða pósthúsi sem er. Þú getur einnig leitað á Íslandskorti.</p><div class="row"><div class="userinput get"><select id="pwebcheckout-posthouse" class="ui-corner-all posthouse"><option selected disabled style="display:none;">Veldu Pósthús...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendPosthouseBtn" tabindex="2" title="Velja2"></button></div></div><div class="container right"><div class="title"><span>Póstbox</span></div><div class="horizontal-line"></div><div class="content"><p>Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna.</p><div class="row"><div class="userinput"><label></label><input type="text" class="ui-corner-all postbox" placeholder="P-Númer..."></div></div><div class="row"><div class="userinput get"><select id="pwebcheckout-postbox" class="ui-corner-all postbox"><option selected disabled style="display:none;">Veldu Póstbox...</option></select></div></div></div><div class="footer"><button id="pwebcheckout-sendPostboxBtn" tabindex="3" title="Velja3"></button></div></div></div>';
@@ -376,7 +299,7 @@
 					heightStyle: 'fill'
 				});
 
-				$('.choose-service').toggle('fade');
+				$('.ui-dialog-content .choose-service').toggle('fade');
 				// We need to redraw our accordion to get correct height as it was drawn into a "display:none;" container
 				$('#pwebcheckout-choose-service').accordion('refresh');
 
@@ -439,6 +362,148 @@
 			});
 		};
 
+		// nopayment, mandatorypayment, optionalpayment, (paynow,) paylater
+		initPaymentMethodView = function() {
+			var html = '',
+					htmls = [],
+					payLater = '<h3>Borga við afhendingu</h3><div><p>Lorem ipsum dolor</p><button id="pwebcheckout-paylater" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div>',
+					creditcard = '<h3>Greiðslukort</h3><div><p>Lorem ipsum dolor</p><select><option>Velja greiðslukort</option></select><p>Skrá nýtt greiðslukort</p><label>Korthafi</label><input type="text"><label>Kortanúmer</label><input type="text" digits><label>Gildir til</label><select><option>MM</option></select><select><option>ÁÁ</option></select><label>CVV</label><input type="text" digits><button id="pwebcheckout-newcreditcard" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Bæta korti við</span></button><button id="pwebcheckout-paycreditcard" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Greiða</span></button></div>';
+			if (localConfig.displayMode.toLowerCase().indexOf('mandatorypayment') > -1) {
+
+			}
+			else {
+				// then optional, add option to pay via store (triggers return to store)
+			}
+
+			// then add pay upon delivery option
+			if (localConfig.displayMode.indexOf('paylater'))
+				htmls.push(payLater);
+			if (localConfig.displayMode.indexOf('creditcard'))
+				htmls.push(creditcard);
+
+			html = createPaymentMethodsHtml(htmls);
+
+			loadHtml(html, 4);
+
+			$('#pwebcheckout-paymentmethods').accordion({
+				active: 0,
+				create: function(event, ui) {
+
+				},
+				heightStyle: 'fill'
+			});
+
+			$('.ui-dialog-content .payment').toggle('fade');
+			// We need to redraw our accordion to get correct height as it was drawn into a "display:none;" container
+			$('#pwebcheckout-paymentmethods').accordion('refresh');
+		};
+
+		activateLogin = function(isLoginView, outputMessage) {
+			var loginState = 0;
+			$('.userinput.phone-number').toggle('fade');
+
+			if ($('#pwebcheckout-login-skipBtn').length)
+				$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
+
+			$('#pwebcheckout-login-nameBtn').button({label: 'Áfram'});
+
+			if (outputMessage != undefined && outputMessage.length > 0) {
+				setLoginLoading(true, 0, false, outputMessage);
+				setTimeout(function() {
+					setLoginLoading(false, 0, false, outputMessage);
+				}, 1000);
+			}
+
+			/*$('#pwebcheckout-login-skipBtn').click(function() {
+				initUserInfoView();
+			});*/
+
+			// Allow triggering next step when 'enter' is pressed
+			$('.userinput.phone-number').keyup(function(e) {
+				if (e.which == 13)
+					$('#pwebcheckout-login-nameBtn').trigger('click');
+			});
+			// Or when we click 'next'
+			$('#pwebcheckout-login-nameBtn').click(function() {
+				var name = $('#pwebcheckout-login-name').val();
+				
+				if (validate.isNumber(name, 7)) {
+					setLoginLoading(true, 1, true);
+					requestLogin(name)
+					.done(function() {
+						setLoginLoading(false, 1, true);
+						$('.userinput.phone-number').remove();
+						$('.userinput.code').toggle('fade');
+						$('#pwebcheckout-login-skipBtn').button({label: 'Sleppa skrefi'});
+						$('#pwebcheckout-login-codeBtn').button({label: 'Áfram'});
+
+						$('#pwebcheckout-login-code').focus();
+
+						$('#pwebcheckout-login-skipBtn').click(function() {
+							initUserInfoView();
+						});
+
+						$('.userinput.code').keyup(function(e) {
+							if (e.which == 13)
+								$('#pwebcheckout-login-codeBtn').trigger('click');
+						});
+						$('#pwebcheckout-login-codeBtn').click(function() {
+							var code = $('#pwebcheckout-login-code').val();
+							console.info(code);
+							
+							if (validate.isNumber(code, 4)) {
+								setLoginLoading(true, 2, true);
+								confirmLogin(name, code)
+								.done(function(rToken) {
+									console.info('confirmLogin:done');
+									getUser(rToken.token)
+									.done(function(rUser) {
+										console.info('getUser:done');
+										$('.login').remove();
+										$.extend(true, user, rUser);
+										console.info(user);
+										console.info(rUser);
+										if (localConfig.displayMode.indexOf('skipuserinfo') > -1)
+											initChooseServiceView();
+										else if (!isLoginView) {
+											setLoginLoading(false, 1, true);
+											loadUserInfo();
+										}
+										else
+											initUserInfoView(false);
+									})
+									.fail(function(error) {
+										console.info(error);
+										activateLogin(isLoginView, getErrorMessage(error));
+									});
+									
+								})
+								.fail(function(error) {
+									activateLogin(isLoginView, getErrorMessage(error));
+								});
+							}
+							else {
+								setLoginLoading(true, 0, false, 'Villa! Ógildur kóði');
+								setTimeout(function() {
+									setLoginLoading(false, 0, false, 'Villa! Ógildur kóði');
+								}, 1000);
+							}
+							
+						});
+					})
+					.fail(function(error) {
+						setLoginLoading(false, 2, true, getErrorMessage(error));
+					});
+				}
+				else {
+					setLoginLoading(true, 0, false, 'Villa! Ógilt símanúmer');
+					setTimeout(function() {
+						setLoginLoading(false, 0, false, 'Villa! Ógilt símanúmer');
+					}, 1000);
+				}
+			});
+		};
+
 		chooseService = function(serviceName, displayName, location, locationId) {
 			chosenService = {
 				name: serviceName,
@@ -446,7 +511,10 @@
 				location: location,
 				locationId: locationId
 			};
-			$('#pwebcheckout-area').dialog('close');
+			if (localConfig.displayMode.indexOf('nopayment') > -1)
+				$('#pwebcheckout-area').dialog('close');
+			else
+				initPaymentMethodView();
 		};
 
 		createChooseServiceHtml = function(htmls) {
@@ -458,6 +526,18 @@
 			}
 			html += end;
 
+			return html;
+		};
+
+		createPaymentMethodsHtml = function(htmls) {
+			var html = '<div class="payment"><p class="instructions">Lorem ipsum dolor greiðslumöguleikar</p><div id="pwebcheckout-paymentmethods">',
+					end = '</div></div>';
+
+			for (var i = 0; i < htmls.length; i++) {
+				html += htmls[i];
+			}
+
+			html += end;
 			return html;
 		};
 
@@ -638,7 +718,29 @@
 			}
 			return message;
 		};
+		getStoreConfig = function(storeId) {
+			var dfd = $.Deferred();
+			setTimeout(function() {
+				var data = {
+					forceLogin: false,
+					forcePayment: false,
+					displayMode: ''
+				};
+				if (storeId != undefined) {
+					if (storeId.toLowerCase().indexOf('forcelogin') > -1)
+						data.forceLogin = true;
+					if (storeId.toLowerCase().indexOf('forcepayment') > -1)
+						data.forcePayment = true;
+					if (storeId.toLowerCase().indexOf('skiplogin') > -1)
+						data.displayMode = 'skiplogin';
+					if (storeId.toLowerCase().indexOf('skipuserinfo') > -1)
+						data.displayMode += 'skipuserinfo';
+				}
 
+				dfd.resolve(data);
+			}, 1000);
+			return dfd.promise();
+		};
 		getUser = function(token) {
 			var dfd = $.Deferred();
 			$.ajax({
@@ -647,12 +749,18 @@
 				headers: {'Authorization': 'bearer ' + token}
 			})
 			.done(function(data) {
+				if (data.addresses && data.addresses.length > 0) {
+					for (var i = 0; i < data.addresses.length; i++) {
+						data.addresses[i].id = data.addresses[i].address + ' ' + data.addresses[i].postalCode;
+						data.addresses[i].name = data.addresses[i].id;
+					}
+				}
 				// if no default address, then set it
-				if (data.addresses && data.addresses.length > 0 && 
-					(data.chosenAddress == undefined || data.chosenAddress.length < 1)) {
+				if (data.chosenAddress == undefined || data.chosenAddress.length < 1) {
 					data.chosenAddress = {
 						address: data.addresses[0].address,
 						postalCode: data.addresses[0].postalCode,
+						name: data.addresses[0].displayText
 					};
 				}
 				console.info(data);
@@ -680,13 +788,24 @@
 						}
 					]
 				};
+				addOptions(data.addresses, $('#pwebcheckout-addresses'));
+				
+				
+				if (data.addresses && data.addresses.length > 0) { 
+					if (data.chosenAddress == undefined || data.chosenAddress.length < 1) {
+						data.chosenAddress = {
+							address: data.addresses[0].address,
+							postalCode: data.addresses[0].postalCode,
+						};
+						selectAddress(data.addresses[0]);
+					}
+					else {
+						selectAddress(data.chosenAddress);
+					}
+				}
 				// if no default address, then set it
-				if (data.addresses && data.addresses.length > 0 && 
-					(data.chosenAddress == undefined || data.chosenAddress.length < 1)) {
-					data.chosenAddress = {
-						address: data.addresses[0].address,
-						postalCode: data.addresses[0].postalCode,
-					};
+				else {
+
 				}
 				setNinLoading(false);
 				dfd.resolve(data);
@@ -694,7 +813,6 @@
 			}, 1000);
 			return dfd.promise();
 		};
-
 		getPostcodes = function(element) {
 			if (element)
 				setPostcodeLoading(true, element);
@@ -786,7 +904,6 @@
 			}, 1000);
 			return dfd.promise();
 		};
-
 		// Gets all available delivery methods for selected item & postcode
 		getDeliveryMethods = function() {
 			setFullScaleLoading(true, 'Sæki lista yfir mögulega sendingarmáta...');
@@ -809,7 +926,7 @@
 			currentStep = step;
 		};
 
-		// Used to add <option> to <select>, with id=element
+		// Used to add <option> to element
 		addOptions = function(options, element) {
 			console.info('appending to:');
 			console.info(element);
@@ -821,6 +938,15 @@
 						text: options[i].name
 					}));
 				}
+			}
+		};
+
+		selectAddress = function(address) {
+			if (address) {
+				$('#pwebcheckout-addresses').val(address);
+			}
+			else {
+				$('#pwebcheckout-addresses').val(user.addresses[0]);
 			}
 		};
 
@@ -852,6 +978,11 @@
 					$('#pwebcheckout-nin').val(userinfo.nin);
 				if (userinfo.name)
 					$('#pwebcheckout-name').val(userinfo.name);
+				if (userinfo.addresses && userinfo.addresses.length > 0) {
+					addOptions(userinfo.addresses, $('#pwebcheckout-addresses'));
+					$('#pwebcheckout-addresses').val(userinfo.chosenAddress.displayText);
+				}
+
 				if (userinfo.chosenAddress && userinfo.chosenAddress.address) {
 					if ($('#pwebcheckout-address').length) {
 						$('#pwebcheckout-address').val(userinfo.chosenAddress.address);

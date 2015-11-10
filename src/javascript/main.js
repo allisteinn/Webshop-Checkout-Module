@@ -65,11 +65,11 @@ module.exports = function() {
 		$scope.lastResult;
 
 		// $.fn.startWebcheckout = function(storeProductInput, storeUserInput, displayMode, allowedDeliveryMethods)
-		$scope.callCheckout = function(sendUser, displayMode, allowedDeliveryMethods) {
+		$scope.callCheckout = function(sendUser, storeId) {
 			var theUser = sendUser? $scope.user: undefined;
 			var deferred = $q.defer();
 
-			angular.element('pwebcheckout-area').startWebcheckout($scope.basket, theUser, displayMode, allowedDeliveryMethods).then(
+			angular.element('pwebcheckout-area').startWebcheckout($scope.basket, theUser, storeId).then(
 				function(response) {
 					deferred.resolve(response);
 				},
@@ -82,12 +82,12 @@ module.exports = function() {
 
 		$scope.simpleWebpage = {
 			startCheckout: function() {
-				$scope.callCheckout(false, undefined, undefined);
+				$scope.callCheckout(false, 'forcelogin');
 			}
 		};
 		$scope.complexWebpage = {
 			startCheckout: function() {
-				$scope.callCheckout($scope.loggedIn, undefined, undefined).then(
+				$scope.callCheckout($scope.loggedIn, undefined).then(
 					function(response) {
 						$scope.lastResult = JSON.stringify(response, null, "    ");
 					},
@@ -99,15 +99,15 @@ module.exports = function() {
 		};
 		$scope.specialWebpage = {
 			startCheckout: function() {
-				var displayMode = $scope.loggedIn? ['skiplogin', 'skipuserinfo']: undefined;
-			$scope.callCheckout($scope.loggedIn, displayMode, undefined).then(
-				function(response) {
-					$scope.lastResult = JSON.stringify(response, null, "    ");
-				},
-				function(error) {
-					$scope.lastResult = 'Villa kom upp';
-				}
-			);
+				var storeId = $scope.loggedIn? 'skiplogin skipuserinfo': undefined;
+				$scope.callCheckout($scope.loggedIn, storeId).then(
+					function(response) {
+						$scope.lastResult = JSON.stringify(response, null, "    ");
+					},
+					function(error) {
+						$scope.lastResult = 'Villa kom upp';
+					}
+				);
 			}
 		};
 	});
