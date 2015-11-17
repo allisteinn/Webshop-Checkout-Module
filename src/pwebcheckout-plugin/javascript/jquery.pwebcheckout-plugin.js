@@ -168,12 +168,10 @@
 				// Use "default" settings
 				initUserInfoView(true);
 			});
-
-			
 		};
 
 		initLoginView = function() {
-			var html = '<div class="login"><p class="instructions">Þessa innskráningarleið er aðeins hægt að nota ef þú ert nú þegar skráð(ur) í Póstbox. Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna. Þú getur skráð þig á mappan.is eða notað rafræn skilríki til þess að skrá þig í þjónustuna. Rafræn skilríki eru auðveld leið til auðkenningar og undirritunar. Þau getur þú fengið í símann þinn eða í debetkortið. Á postur.is eru einföld myndbönd sem útskýra hvernig ferlið gengur fyrir sig.</p><div class="row centered"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits autofocus><br /><span class="centerbutton"><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3"></button></span></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /><span class="centerbutton"><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3"></button></span></div><div class="output"></div></div></div>';
+			var html = '<div class="login"><p class="instructions">Þessa innskráningarleið er aðeins hægt að nota ef þú ert nú þegar skráð(ur) í Póstbox. Það er einfalt að skrá sig í Póstboxið á postur.is. Þar ertu leidd(ur) áfram, skref fyrir skref þar til þú færð þitt P-númer, velur þér Póstbox og getur farið að nýta þér þjónustuna. Þú getur skráð þig á mappan.is eða notað rafræn skilríki til þess að skrá þig í þjónustuna. Rafræn skilríki eru auðveld leið til auðkenningar og undirritunar. Þau getur þú fengið í símann þinn eða í debetkortið. Á postur.is eru einföld myndbönd sem útskýra hvernig ferlið gengur fyrir sig.</p><div class="form"><div class="userinput phone-number"><div class="row"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits autofocus><br /></div><div class="row"><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3"></button></div></div><div class="userinput code"><div class="row"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /></div><div class="row"><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3"></button></div></div><div class="output"></div></div></div>';
 			loadHtml(html, 1);
 
 			activateLogin(true);
@@ -181,8 +179,8 @@
 
 		initUserInfoView = function(hasLogin) {
 			var html = {
-				withoutLogin: '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Berist til</label><input type="text" id="pwebcheckout-deliver-to" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" autofocus title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div>',
-				withLogin: '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="login left"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits><br /><div class="centerbutton"><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3" class="right"></button></div></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /><div class="centerbutton"><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3" class="right"></button></div></div></div><div class="right"><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Heimilisfangalisti</label><select id="pwebcheckout-addresses" class="ui-corner-all addresses"></select></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Póstnúmer</label><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div></div>'
+				withoutLogin: '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row addresses"><div class="userinput"><label>Heimilisfangalisti</label><select id="pwebcheckout-addresses" class="ui-corner-all addresses"></select></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label>Netfang</label><input type="text" id="pwebcheckout-email" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div>',
+				withLogin: '<div class="userinfo"><p class="instructions">Pakka innanlands er hægt að senda á pósthús eða heim að dyrum. Þú getur sent stóra, litla, langa, breiða eða mjóa pakka með Póstinum. Hver pakki fær viðtökunúmer þannig að hægt er að finna sendingu, hvar hún er stödd á hverjum tíma. Við mælum með því að verðmætari sendingar séu tryggðar með pósttryggingu, en lágmarkstrygging er innifalin.</p><div class="login left"><div class="userinput phone-number"><label>Símanúmer</label><input type="text" id="pwebcheckout-login-name" class="ui-corner-all" maxlength="7" tabindex="1" digits><br /><div class="centerbutton"><button id="pwebcheckout-login-nameBtn" title="Áfram" tabindex="3" class="right"></button></div></div><div class="userinput code"><label>SMS-kóði</label><input type="text" id="pwebcheckout-login-code" class="ui-corner-all" maxlength="4" tabindex="1" digits><br /><div class="centerbutton"><button id="pwebcheckout-login-codeBtn" title="Áfram" tabindex="3" class="right"></button></div></div></div><div class="right"><div class="row"><div class="userinput"><label>Kennitala</label><input type="text" id="pwebcheckout-nin" class="nin ui-corner-all" maxlength="10"></div></div><div class="row"><div class="userinput"><label>Nafn</label><input type="text" id="pwebcheckout-name" class="ui-corner-all"></div></div><div class="row addresses"><div class="userinput"><label>Heimilisfangalisti</label><select id="pwebcheckout-addresses" class="ui-corner-all addresses"></select></div></div><div class="row"><div class="userinput"><label>Heimilisfang</label><input type="text" id="pwebcheckout-address" class="address ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Póstnúmer</label><select id="pwebcheckout-postcode" class="ui-corner-all postcode"><option selected disabled style="display:none;">Veldu póstnúmer</option></select></div></div><div class="row"><div class="userinput"><label>Netfang</label><input type="text" id="pwebcheckout-email" class="ui-corner-all"></div></div><div class="row"><div class="userinput"><label>Farsímanúmer</label><input type="text" id="pwebcheckout-mobile-phone-number" class="phone-number ui-corner-all" maxlength="7"></div></div><div class="row"><div class="userinput"><label></label><button id="pwebcheckout-complete-userinfo" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div></div></div></div>'
 			};
 
 			// Load our html and display it
@@ -207,6 +205,10 @@
 			// Then load all userinfo if available (and select correct postcode)
 			loadUserInfo();
 
+			$('#pwebcheckout-addresses').change(function(event) {
+				selectAddress(event.target.value);
+			});
+
 			// And make sure our login form is working (if present)
 			if (hasLogin)
 				activateLogin(false);
@@ -224,7 +226,8 @@
 				user.chosenAddress.address = $('#pwebcheckout-address').val();
 				user.chosenAddress.postalCode = $('#pwebcheckout-postcode option:selected').val();
 
-				user.addresses = [];
+				if (user.addresses == undefined)
+					user.addresses = [];
 				user.addresses.push(user.chosenAddress);
 
 				user.phoneNumber = $('#pwebcheckout-mobile-phone-number').val();
@@ -234,7 +237,7 @@
 				}
 				else {
 					initChooseServiceView();
-				}	
+				}
 			});
 		};
 
@@ -367,7 +370,7 @@
 			var html = '',
 					htmls = [],
 					payLater = '<h3>Borga við afhendingu</h3><div><p>Lorem ipsum dolor</p><button id="pwebcheckout-paylater" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Áfram</span></button></div>',
-					creditcard = '<h3>Greiðslukort</h3><div><p>Lorem ipsum dolor</p><select><option>Velja greiðslukort</option></select><p>Skrá nýtt greiðslukort</p><label>Korthafi</label><input type="text"><label>Kortanúmer</label><input type="text" digits><label>Gildir til</label><select><option>MM</option></select><select><option>ÁÁ</option></select><label>CVV</label><input type="text" digits><button id="pwebcheckout-newcreditcard" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Bæta korti við</span></button><button id="pwebcheckout-paycreditcard" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Halda áfram og velja sendingarmáta"><span class="ui-button-text">Greiða</span></button></div>';
+					creditcard = '<h3>Greiðslukort</h3><div><p>Lorem ipsum dolor</p><div id="pwebcheckout-choose-creditcard" class="row"><select class="choose-creditcard"><option>Velja greiðslukort</option></select></div><p>Skrá nýtt greiðslukort</p><div class="row"><label>Korthafi</label><input type="text"></div><div class="row"><label>Kortanúmer</label><input type="text" digits></div><div class="row"><label>Gildir til</label><select class="expdate"><option>MM</option></select><select class="expdate"><option>ÁÁ</option></select></div><div class="row"><label>CVV</label><input type="text" digits></div><button id="pwebcheckout-newcreditcard" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Bæta korti við"><span class="ui-button-text">Bæta korti við</span></button><button id="pwebcheckout-paycreditcard" type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" tabindex="1" title="Greiða"><span class="ui-button-text">Greiða</span></button></div>'
 			if (localConfig.displayMode.toLowerCase().indexOf('mandatorypayment') > -1) {
 
 			}
@@ -551,9 +554,18 @@
 					image = scale == 'full'? 'ajax-loader.gif': 'ajax-loader-small.gif',
 					imageClass = scale == 'full'? 'class="centered" ': '',
 					displaySpan = displayText == undefined? '' : '<span>' + displayText + '</span>',
-					workingElement = element.parent().find('.ui-dialog-content').length > 0 || 
-													 classes.indexOf('nin') > -1 ? 
-													 element.parent() : element.parent().parent();
+					workingElement = element;
+
+			//is default
+			//if (classes.indexOf('fullscale') > -1)
+			//	workingElement = element;
+
+			if (classes.indexOf('nin') > -1) 
+				workingElement = element.parent();
+			else if (classes.indexOf('postcode') > -1)
+				workingElement = element.parent().parent();
+			/*else 
+				workingElement = element.parent().parent();*/
 			
 			if (start) {
 				console.info('start loading...');
@@ -590,7 +602,7 @@
 			// Hide main view
 			$('.ui-dialog-content').find('div').toggle('fade');
 			// Display loading view
-			setLoading(start, displayText, 'full', $('.ui-dialog-content'), 'centered');
+			setLoading(start, displayText, 'full', $('.ui-dialog-content'), 'fullscale');
 		};
 		setNinLoading = function(start) {
 			var displayText = start ? 'Sæki upplýsingar...': 'Upplýsingar sóttar!';
@@ -669,7 +681,7 @@
 						dfd.reject(data);
 					});
 
-			}, 1000);
+			}, 5000);
 			return dfd.promise();
 		};
 		confirmLogin = function(phoneNumber, code) {
@@ -719,6 +731,7 @@
 			return message;
 		};
 		getStoreConfig = function(storeId) {
+			setFullScaleLoading(true, 'Sæki stillingar...');
 			var dfd = $.Deferred();
 			setTimeout(function() {
 				var data = {
@@ -736,9 +749,9 @@
 					if (storeId.toLowerCase().indexOf('skipuserinfo') > -1)
 						data.displayMode += 'skipuserinfo';
 				}
-
+				setFullScaleLoading(false);
 				dfd.resolve(data);
-			}, 1000);
+			}, 1500);
 			return dfd.promise();
 		};
 		getUser = function(token) {
@@ -944,9 +957,13 @@
 		selectAddress = function(address) {
 			if (address) {
 				$('#pwebcheckout-addresses').val(address);
+				$('#pwebcheckout-address').val(address.address);
+				$('#pwebcheckout-postcode').val(address.postalCode);
 			}
 			else {
 				$('#pwebcheckout-addresses').val(user.addresses[0]);
+				$('#pwebcheckout-address').val(user.addresses[0].address);
+				$('#pwebcheckout-postcode').val(user.addresses[0].postalCode);
 			}
 		};
 
@@ -979,8 +996,12 @@
 				if (userinfo.name)
 					$('#pwebcheckout-name').val(userinfo.name);
 				if (userinfo.addresses && userinfo.addresses.length > 0) {
+					$('.row.addresses').show();
 					addOptions(userinfo.addresses, $('#pwebcheckout-addresses'));
 					$('#pwebcheckout-addresses').val(userinfo.chosenAddress.displayText);
+				}
+				else {
+					$('.row.addresses').hide();
 				}
 
 				if (userinfo.chosenAddress && userinfo.chosenAddress.address) {
