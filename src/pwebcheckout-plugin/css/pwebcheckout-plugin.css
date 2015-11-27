@@ -243,17 +243,22 @@
 	height: 60%;
 }
 
-.webcheckout > .ui-dialog-content > .login > .form > .output {
+.webcheckout > .ui-dialog-content > .login > .form > .output,
+.webcheckout > .ui-dialog-content > .userinfo > .login > .output {
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: 10px;
 }
+.webcheckout > .ui-dialog-content > .userinfo > .login > .output {
+	text-align: center;
+}
 .webcheckout > .ui-dialog-content > .login > .form > .output > .loading {
 }
 .webcheckout > .ui-dialog-content > .login > .form > .output > .loading > span {
 }
-.webcheckout > .ui-dialog-content > .login > .form > .output > .loading > img {
+.webcheckout > .ui-dialog-content > .login > .form > .output > .loading > img,
+.webcheckout > .ui-dialog-content > .userinfo > .login > .output > .loading > img {
 	margin-right: 10px;
 }
 
